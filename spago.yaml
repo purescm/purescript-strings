@@ -30,4 +30,5 @@ workspace:
       - "build"
   extra_packages: {}
   package_set:
-    url: https://github.com/purescm/purescm/blob/39b3b510642eeae41f4103f0fd565d17fb187b4b/package-sets/1.0.0.json
+    url: https://raw.githubusercontent.com/purescm/purescm/39b3b510642eeae41f4103f0fd565d17fb187b4b/package-sets/1.0.0.json
+    hash: sha256-Mm3VlMC8LyS2ifZ6b29ejgq3qpZwNhGt1SGegT1w+Vk=
