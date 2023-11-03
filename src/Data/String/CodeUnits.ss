@@ -36,19 +36,21 @@
       (lambda (nothing)
         (lambda (i)
           (lambda (s)
-            (if (< i (string-length s))
-              (let
-                ([cus (bvs:string->utf16 s)]
-                 [v (bvs:make-bytevector 2)]
-                 [ix (* i 2)]
-                 [tx (make-transcoder (utf-16-codec))])
-                (bvs:bytevector-u16-set!
-                  v
-                  0
-                  (bvs:bytevector-u16-ref cus ix (bvs:native-endianness))
-                  (bvs:native-endianness))
-                (just (string-ref (bytevector->string v tx) 0)))
-              nothing))))))
+            (let*
+              ([cus (bvs:string->utf16 s)]
+               [v (bvs:make-bytevector 2)]
+               [ix (* i 2)]
+               [tx (make-transcoder (utf-16-codec))]
+               [max-ix (- (bvs:bytevector-length cus) 2)])
+              (if (> ix max-ix)
+                nothing
+                (begin
+                  (bvs:bytevector-u16-set!
+                    v
+                    0
+                    (bvs:bytevector-u16-ref cus ix (bvs:native-endianness))
+                    (bvs:native-endianness))
+                  (just (string-ref (bytevector->string v tx) 0))))))))))
 
   (define _toChar
     (lambda (just)
