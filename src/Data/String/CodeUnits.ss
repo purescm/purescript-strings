@@ -18,10 +18,11 @@
     slice
     splitAt)
   (import
-    (only (rnrs base) + - * / < = > >= and begin cons define if lambda let let* max min not or string string-length string-ref)
+    (only (rnrs base) + - * / < = > >= begin cons define if lambda let let* max min not or string string-length string-ref)
     (prefix (rnrs bytevectors) bvs:)
     (only (rnrs io ports) bytevector->string make-transcoder utf-16-codec)
     (prefix (purs runtime lib) rt:)
+    (prefix (purs runtime srfi :1) srfi:1:)
     (prefix (purs runtime srfi :152) srfi:152:)
     (prefix (purs runtime srfi :214) srfi:214:))
 
@@ -87,6 +88,34 @@
                   (loop (+ n 2))
                   (/ n 2)))))))))
 
+  (define take
+    (lambda (n)
+      (lambda (s)
+        (let*
+          ([cus (bvs:bytevector->uint-list (bvs:string->utf16 s) (bvs:native-endianness) 2)]
+           [tx (make-transcoder (utf-16-codec))]
+           [to-take (max 0 (min n (length s)))])
+          (bytevector->string
+            (bvs:uint-list->bytevector
+              (srfi:1:take cus to-take)
+              (bvs:native-endianness)
+              2)
+            tx)))))
+
+  (define drop
+    (lambda (n)
+      (lambda (s)
+        (let*
+          ([cus (bvs:bytevector->uint-list (bvs:string->utf16 s) (bvs:native-endianness) 2)]
+           [tx (make-transcoder (utf-16-codec))]
+           [to-drop (max 0 (min n (length s)))])
+          (bytevector->string
+            (bvs:uint-list->bytevector
+              (srfi:1:drop cus to-drop)
+              (bvs:native-endianness)
+              2)
+            tx)))))
+
   (define _indexOf
     (lambda (just)
       (lambda (nothing)
@@ -95,7 +124,7 @@
             (let ([i (srfi:152:string-contains s pattern)])
               (if (not i)
                 nothing
-                (just (length (srfi:152:string-take s i))))))))))
+                (just (length ((take i) s))))))))))
 
   (define _indexOfStartingAt
     (lambda (just)
@@ -103,10 +132,17 @@
         (lambda (pattern)
           (lambda (startAt)
             (lambda (s)
-              (if (or (> startAt (string-length s)) (< startAt 0))
+              (if (or (< startAt 0) (> startAt (length s)))
                 nothing
-                (let ([i (srfi:152:string-contains s pattern startAt)])
-                  (if i (just i) nothing)))))))))
+                (let*
+                  ([s-after-start ((drop startAt) s)]
+                   [i (srfi:152:string-contains s-after-start pattern)])
+                  (if (not i)
+                    nothing
+                    (just
+                      (+
+                        (length ((take startAt) s))
+                        (length ((take i) s-after-start)))))))))))))
 
   (define _lastIndexOf
     (lambda (just)
@@ -114,7 +150,9 @@
         (lambda (pattern)
           (lambda (s)
             (let ([i (srfi:152:string-contains-right s pattern)])
-              (if i (just i) nothing)))))))
+              (if (not i)
+                nothing
+                (just (length ((take i) s))))))))))
 
   (define _lastIndexOfStartingAt
     (lambda (just)
@@ -122,43 +160,32 @@
         (lambda (pattern)
           (lambda (startAt)
             (lambda (s)
-              (let
+              (let*
                 ([pattern-ix
-                  (clamp-index-to-length s (+ startAt (string-length pattern)))])
-                (let ([i (srfi:152:string-contains-right s pattern 0 pattern-ix)])
-                  (if i (just i) nothing)))))))))
-
-  (define take
-    (lambda (n)
-      (lambda (s)
-          (srfi:152:string-take s (clamp-index-to-length s n)))))
-
-  (define drop
-    (lambda (n)
-      (lambda (s)
-          (srfi:152:string-drop s (clamp-index-to-length s n)))))
+                  (max 0 (min (string-length s) (+ startAt (string-length pattern))))]
+                 [i (srfi:152:string-contains-right s pattern 0 pattern-ix)])
+                (if (not i)
+                  nothing
+                  (just (length ((take i) s)))))))))))
 
   (define slice
     (lambda (b)
       (lambda (e)
         (lambda (s)
-          (let ([len (string-length s)])
-            (let
-              ([bn (if (>= b 0) b (+ len b))]
-               [en (if (>= e 0) e (+ len e))])
-              (if (> bn en)
-                ""
-                (srfi:152:substring s (max 0 bn) (min len en)))))))))
+          (let*
+            ([len (length s)]
+             [bn (if (>= b 0) b (+ len b))]
+             [en (if (>= e 0) e (+ len e))])
+            (if (> bn en)
+              ""
+              ((take (- (min len en) (max 0 bn))) ((drop (max 0 bn)) s))))))))
 
   (define splitAt
     (lambda (i)
       (lambda (s)
-        (let ([ix (clamp-index-to-length s i)])
+        (let ([ix (max 0 (min (length s) i))])
           (rt:make-object
-            (cons "before" (srfi:152:string-take s ix))
-            (cons "after" (srfi:152:string-drop s ix)))))))
+            (cons "before" ((take ix) s))
+            (cons "after" ((drop ix) s)))))))
 
-  (define clamp-index-to-length
-    (lambda (s n)
-      (max 0 (min n (string-length s)))))
 )
