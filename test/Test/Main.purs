@@ -7,7 +7,7 @@ import Effect.Console (log)
 import Test.Data.String (testString)
 -- import Test.Data.String.CaseInsensitive (testCaseInsensitiveString)
 -- import Test.Data.String.CodePoints (testStringCodePoints)
--- import Test.Data.String.CodeUnits (testStringCodeUnits)
+import Test.Data.String.CodeUnits (testStringCodeUnits)
 -- import Test.Data.String.NonEmpty (testNonEmptyString)
 -- import Test.Data.String.NonEmpty.CodeUnits (testNonEmptyStringCodeUnits)
 -- import Test.Data.String.Regex (testStringRegex)
@@ -19,8 +19,8 @@ main = do
   testString
   -- log "\n--- Data.String.CodePoints ---\n"
   -- testStringCodePoints
-  -- log "\n--- Data.String.CodeUnits ---\n"
-  -- testStringCodeUnits
+  log "\n--- Data.String.CodeUnits ---\n"
+  testStringCodeUnits
   log "\n--- Data.String.Unsafe ---\n"
   testStringUnsafe
   -- log "\n--- Data.String.Regex ---\n"
