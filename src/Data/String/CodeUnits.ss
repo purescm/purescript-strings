@@ -18,7 +18,9 @@
     slice
     splitAt)
   (import
-    (only (rnrs base) + < = > >= and cons define if lambda let max min or string string-length string-ref)
+    (only (rnrs base) + - * / < = > >= and begin cons define if lambda let let* max min or string string-length string-ref)
+    (prefix (rnrs bytevectors) bvs:)
+    (only (rnrs io ports) bytevector->string make-transcoder utf-16-codec)
     (prefix (purs runtime lib) rt:)
     (prefix (purs runtime srfi :152) srfi:152:)
     (prefix (purs runtime srfi :214) srfi:214:))
@@ -34,8 +36,18 @@
       (lambda (nothing)
         (lambda (i)
           (lambda (s)
-            (if (and (>= i 0) (< i (string-length s)))
-              (just (string-ref s i))
+            (if (< i (string-length s))
+              (let
+                ([cus (bvs:string->utf16 s)]
+                 [v (bvs:make-bytevector 2)]
+                 [ix (* i 2)]
+                 [tx (make-transcoder (utf-16-codec))])
+                (bvs:bytevector-u16-set!
+                  v
+                  0
+                  (bvs:bytevector-u16-ref cus ix (bvs:native-endianness))
+                  (bvs:native-endianness))
+                (just (string-ref (bytevector->string v tx) 0)))
               nothing))))))
 
   (define _toChar
@@ -43,17 +55,35 @@
       (lambda (nothing)
         (lambda (s)
           (if (= 1 (string-length s))
-            (just (string-ref s 0))
+            ((((_charAt just) nothing) 0) s)
             nothing)))))
 
-  (define length string-length)
+  (define length
+    (lambda (s)
+      (/
+        (bvs:bytevector-length (bvs:string->utf16 s))
+        2)))
 
   (define countPrefix
     (lambda (p)
       (lambda (s)
-        (or
-          (srfi:152:string-skip s p)
-          (string-length s)))))
+        (let*
+          ([cus (bvs:string->utf16 s)]
+           [v (bvs:make-bytevector 2)]
+           [tx (make-transcoder (utf-16-codec))]
+           [max-ix (- (bvs:bytevector-length cus) 2)])
+          (let loop ([n 0])
+            (if (> n max-ix)
+              (/ n 2)
+              (begin
+                (bvs:bytevector-u16-set!
+                  v
+                  0
+                  (bvs:bytevector-u16-ref cus n (bvs:native-endianness))
+                  (bvs:native-endianness))
+                (if (p (string-ref (bytevector->string v tx) 0))
+                  (loop (+ n 2))
+                  (+ 1 (/ n 2))))))))))
 
   (define _indexOf
     (lambda (just)
