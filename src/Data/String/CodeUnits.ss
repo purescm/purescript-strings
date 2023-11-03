@@ -18,7 +18,7 @@
     slice
     splitAt)
   (import
-    (only (rnrs base) + - * / < = > >= and begin cons define if lambda let let* max min or string string-length string-ref)
+    (only (rnrs base) + - * / < = > >= and begin cons define if lambda let let* max min not or string string-length string-ref)
     (prefix (rnrs bytevectors) bvs:)
     (only (rnrs io ports) bytevector->string make-transcoder utf-16-codec)
     (prefix (purs runtime lib) rt:)
@@ -85,7 +85,7 @@
                   (bvs:native-endianness))
                 (if (p (string-ref (bytevector->string v tx) 0))
                   (loop (+ n 2))
-                  (+ 1 (/ n 2))))))))))
+                  (/ n 2)))))))))
 
   (define _indexOf
     (lambda (just)
@@ -93,7 +93,9 @@
         (lambda (pattern)
           (lambda (s)
             (let ([i (srfi:152:string-contains s pattern)])
-              (if i (just i) nothing)))))))
+              (if (not i)
+                nothing
+                (just (length (srfi:152:string-take s i))))))))))
 
   (define _indexOfStartingAt
     (lambda (just)
