@@ -58,58 +58,60 @@
   (define _indexOf
     (lambda (just)
       (lambda (nothing)
-        (lambda (x)
+        (lambda (pattern)
           (lambda (s)
-            (let ((i (srfi:152:string-contains s x)))
+            (let ([i (srfi:152:string-contains s pattern)])
               (if i (just i) nothing)))))))
 
   (define _indexOfStartingAt
     (lambda (just)
       (lambda (nothing)
-        (lambda (x)
+        (lambda (pattern)
           (lambda (startAt)
             (lambda (s)
               (if (or (> startAt (string-length s)) (< startAt 0))
                 nothing
-                (let ((i (srfi:152:string-contains s x startAt)))
+                (let ([i (srfi:152:string-contains s pattern startAt)])
                   (if i (just i) nothing)))))))))
 
   (define _lastIndexOf
     (lambda (just)
       (lambda (nothing)
-        (lambda (x)
+        (lambda (pattern)
           (lambda (s)
-            (let ((i (srfi:152:string-contains-right s x)))
+            (let ([i (srfi:152:string-contains-right s pattern)])
               (if i (just i) nothing)))))))
 
   (define _lastIndexOfStartingAt
     (lambda (just)
       (lambda (nothing)
-        (lambda (x)
+        (lambda (pattern)
           (lambda (startAt)
             (lambda (s)
-              (let ((clamped (clamp-to-length s (+ startAt (string-length x)))))
-                (let ((i (srfi:152:string-contains-right s x 0 clamped)))
+              (let
+                ([pattern-ix
+                  (clamp-index-to-length s (+ startAt (string-length pattern)))])
+                (let ([i (srfi:152:string-contains-right s pattern 0 pattern-ix)])
                   (if i (just i) nothing)))))))))
 
   (define take
     (lambda (n)
       (lambda (s)
-          (srfi:152:string-take s (clamp-to-length s n)))))
+          (srfi:152:string-take s (clamp-index-to-length s n)))))
 
   (define drop
     (lambda (n)
       (lambda (s)
-          (srfi:152:string-drop s (clamp-to-length s n)))))
+          (srfi:152:string-drop s (clamp-index-to-length s n)))))
 
   (define slice
     (lambda (b)
       (lambda (e)
         (lambda (s)
-          (let ((len (string-length s)))
+          (let ([len (string-length s)])
             (let
-              ((bn (if (>= b 0) b (+ len b)))
-               (en (if (>= e 0) e (+ len e))))
+              ([bn (if (>= b 0) b (+ len b))]
+               [en (if (>= e 0) e (+ len e))])
               (if (> bn en)
                 ""
                 (srfi:152:substring s (max 0 bn) (min len en)))))))))
@@ -117,12 +119,12 @@
   (define splitAt
     (lambda (i)
       (lambda (s)
-        (let ((clamped (clamp-to-length s i)))
+        (let ([ix (clamp-index-to-length s i)])
           (rt:make-object
-            (cons "before" (srfi:152:string-take s clamped))
-            (cons "after" (srfi:152:string-drop s clamped)))))))
+            (cons "before" (srfi:152:string-take s ix))
+            (cons "after" (srfi:152:string-drop s ix)))))))
 
-  (define clamp-to-length
+  (define clamp-index-to-length
     (lambda (s n)
       (max 0 (min n (string-length s)))))
 )
