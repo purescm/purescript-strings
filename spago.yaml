@@ -1,0 +1,34 @@
+package:
+  dependencies:
+    - arrays
+    - control
+    - either
+    - enums
+    - foldable-traversable
+    - gen
+    - integers
+    - maybe
+    - newtype
+    - nonempty
+    - partial
+    - prelude
+    - tailrec
+    - tuples
+    - unfoldable
+    - unsafe-coerce
+  name: strings
+  test:
+    main: Test.Main
+    dependencies:
+      - assert
+      - console
+      - minibench
+workspace:
+  backend:
+    cmd: purescm
+    args:
+      - "build"
+  extra_packages: {}
+  package_set:
+    url: https://raw.githubusercontent.com/purescm/purescm/39b3b510642eeae41f4103f0fd565d17fb187b4b/package-sets/1.0.0.json
+    hash: sha256-Mm3VlMC8LyS2ifZ6b29ejgq3qpZwNhGt1SGegT1w+Vk=

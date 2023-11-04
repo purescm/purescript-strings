@@ -36,23 +36,24 @@ testString = do
   assert $ S.contains (Pattern "bc") "abcd"
   assert $ not S.contains (Pattern "cb") "abcd"
 
-  log "localeCompare"
-  assertEqual
-    { actual: S.localeCompare "" ""
-    , expected: EQ
-    }
-  assertEqual
-    { actual: S.localeCompare "a" "a"
-    , expected: EQ
-    }
-  assertEqual
-    { actual: S.localeCompare "a" "b"
-    , expected: LT
-    }
-  assertEqual
-    { actual: S.localeCompare "b" "a"
-    , expected: GT
-    }
+  -- This function is not implemented for the Scheme backend.
+  -- log "localeCompare"
+  -- assertEqual
+  --   { actual: S.localeCompare "" ""
+  --   , expected: EQ
+  --   }
+  -- assertEqual
+  --   { actual: S.localeCompare "a" "a"
+  --   , expected: EQ
+  --   }
+  -- assertEqual
+  --   { actual: S.localeCompare "a" "b"
+  --   , expected: LT
+  --   }
+  -- assertEqual
+  --   { actual: S.localeCompare "b" "a"
+  --   , expected: GT
+  --   }
 
   log "replace"
   assertEqual

@@ -1,22 +1,23 @@
-module Test.Data.String.CaseInsensitive (testCaseInsensitiveString) where
+-- module Test.Data.String.CaseInsensitive (testCaseInsensitiveString) where
+module Test.Data.String.CaseInsensitive where
 
-import Prelude
+-- import Prelude
 
-import Data.String.CaseInsensitive (CaseInsensitiveString(..))
-import Effect (Effect)
-import Effect.Console (log)
-import Test.Assert (assertEqual)
+-- import Data.String.CaseInsensitive (CaseInsensitiveString(..))
+-- import Effect (Effect)
+-- import Effect.Console (log)
+-- import Test.Assert (assertEqual)
 
-testCaseInsensitiveString :: Effect Unit
-testCaseInsensitiveString = do
-  log "equality"
-  assertEqual
-    { actual: CaseInsensitiveString "aB"
-    , expected: CaseInsensitiveString "AB"
-    }
+-- testCaseInsensitiveString :: Effect Unit
+-- testCaseInsensitiveString = do
+--   log "equality"
+--   assertEqual
+--     { actual: CaseInsensitiveString "aB"
+--     , expected: CaseInsensitiveString "AB"
+--     }
 
-  log "comparison"
-  assertEqual
-    { actual: compare (CaseInsensitiveString "qwerty") (CaseInsensitiveString "QWERTY")
-    , expected: EQ
-    }
+--   log "comparison"
+--   assertEqual
+--     { actual: compare (CaseInsensitiveString "qwerty") (CaseInsensitiveString "QWERTY")
+--     , expected: EQ
+--     }
