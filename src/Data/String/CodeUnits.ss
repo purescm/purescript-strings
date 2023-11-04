@@ -18,8 +18,7 @@
     slice
     splitAt)
   (import
-    (only (rnrs base) + - * / < = > >= and begin car cdr cond cons define else equal? if lambda let let* list->string max min not or pair? string string-length string->list string-ref)
-    (only (chezscheme) reverse!)
+    (only (rnrs base) + - * / < = > >= begin cons define if lambda let let* max min not or string string-length string-ref)
     (prefix (rnrs bytevectors) bvs:)
     (only (rnrs io ports) bytevector->string make-transcoder utf-16-codec)
     (prefix (purs runtime lib) rt:)
@@ -122,7 +121,10 @@
       (lambda (nothing)
         (lambda (pattern)
           (lambda (s)
-            (((((_indexOfStartingAt just) nothing) pattern) 0) s))))))
+            (let ([i (srfi:152:string-contains s pattern)])
+              (if (not i)
+                nothing
+                (just (length ((take i) s))))))))))
 
   (define _indexOfStartingAt
     (lambda (just)
@@ -132,38 +134,25 @@
             (lambda (s)
               (if (or (< startAt 0) (> startAt (length s)))
                 nothing
-                (let
-                  ([s-after-start (string->u16-uint-list ((drop startAt) s))]
-                   [pattern-bytes (string->u16-uint-list pattern)]
-                   [pattern-length (length pattern)])
-                  (let go ([ix startAt]
-                           [found-first #f]
-                           [pat pattern-bytes]
-                           [s-tail s-after-start])
-                    (cond
-                      ((and found-first (pair? pat) (pair? s-tail))
-                        (if (equal? (car pat) (car s-tail))
-                          (go (+ ix 1) #t (cdr pat) (cdr s-tail))
-                          (go (+ ix 1) #f pattern-bytes (cdr s-tail))))
-                      ((and found-first (pair? pat))
-                        nothing)
-                      (found-first
-                        (just (- ix pattern-length)))
-                      ((and (pair? pat) (pair? s-tail))
-                        (if (equal? (car pat) (car s-tail))
-                          (go (+ ix 1) #t (cdr pat) (cdr s-tail))
-                          (go (+ ix 1) #f pattern-bytes (cdr s-tail))))
-                      ((pair? pat)
-                        nothing)
-                      (else
-                        (just (- ix pattern-length)))))))))))))
+                (let*
+                  ([s-after-start ((drop startAt) s)]
+                   [i (srfi:152:string-contains s-after-start pattern)])
+                  (if (not i)
+                    nothing
+                    (just
+                      (+
+                        (length ((take startAt) s))
+                        (length ((take i) s-after-start)))))))))))))
 
   (define _lastIndexOf
     (lambda (just)
       (lambda (nothing)
         (lambda (pattern)
           (lambda (s)
-            (((((_lastIndexOfStartingAt just) nothing) pattern) (length s)) s))))))
+            (let ([i (srfi:152:string-contains-right s pattern)])
+              (if (not i)
+                nothing
+                (just (length ((take i) s))))))))))
 
   (define _lastIndexOfStartingAt
     (lambda (just)
@@ -171,42 +160,13 @@
         (lambda (pattern)
           (lambda (startAt)
             (lambda (s)
-              (if (< startAt 0)
-                (let ([pat-at-ix-0 ((take (length pattern)) s)])
-                  (if (equal? pattern pat-at-ix-0) (just 0) nothing))
-                (let*
-                  ([s-len (length s)]
-                   [start-at (min s-len (+ startAt (length pattern)))]
-                   [s-bytes (reverse! (string->u16-uint-list ((take start-at) s)))]
-                   [pattern-bytes (reverse! (string->u16-uint-list pattern))])
-                  (let go ([ix start-at]
-                           [found-first #f]
-                           [pat pattern-bytes]
-                           [s-tail s-bytes])
-                    (cond
-                      ((and found-first (pair? pat) (pair? s-tail))
-                        (if (equal? (car pat) (car s-tail))
-                          (go (- ix 1) #t (cdr pat) (cdr s-tail))
-                          (go (- ix 1) #f pattern-bytes (cdr s-tail))))
-                      ((and found-first (pair? pat))
-                        nothing)
-                      (found-first
-                        (just ix))
-                      ((and (pair? pat) (pair? s-tail))
-                        (if (equal? (car pat) (car s-tail))
-                          (go (- ix 1) #t (cdr pat) (cdr s-tail))
-                          (go (- ix 1) #f pattern-bytes (cdr s-tail))))
-                      ((pair? pat)
-                        nothing)
-                      (else
-                        (just ix))))))))))))
-
-  (define string->u16-uint-list
-    (lambda (s)
-      (bvs:bytevector->uint-list
-        (bvs:string->utf16 s)
-        (bvs:native-endianness)
-        2)))
+              (let*
+                ([pattern-ix
+                  (max 0 (min (string-length s) (+ startAt (string-length pattern))))]
+                 [i (srfi:152:string-contains-right s pattern 0 pattern-ix)])
+                (if (not i)
+                  nothing
+                  (just (length ((take i) s)))))))))))
 
   (define slice
     (lambda (b)
