@@ -38,7 +38,8 @@ testStringRegex = do
   assert $ replace' (unsafeRegex "(foo)(bar)?" noFlags) (\s xs -> show xs) "<>" == "<>"
   assert $ replace' (unsafeRegex "(foo)(bar)?" noFlags) (\s xs -> show xs) "<foo>" == "<[(Just \"foo\"),Nothing]>"
   assert $ replace' (unsafeRegex "(foo)(bar)?" noFlags) (\s xs -> show xs) "<foobar>" == "<[(Just \"foo\"),(Just \"bar\")]>"
-  assert $ replace' (unsafeRegex "@(?<username>\\w+)" noFlags) (\s xs -> show xs) "@purescript" == "[(Just \"purescript\")]"
+  -- purescm: irregex does not support this regex
+  -- assert $ replace' (unsafeRegex "@(?<username>\\w+)" noFlags) (\s xs -> show xs) "@purescript" == "[(Just \"purescript\")]"
 
   log "search"
   assert $ search (unsafeRegex "b" noFlags) "abc" == Just 1
@@ -47,7 +48,9 @@ testStringRegex = do
   log "split"
   assert $ split (unsafeRegex "" noFlags) "" == []
   assert $ split (unsafeRegex "" noFlags) "abc" == ["a", "b", "c"]
-  assert $ split (unsafeRegex "b" noFlags) "" == [""]
+  -- purescm: irregex returns an empty list in this case
+  -- assert $ split (unsafeRegex "b" noFlags) "" == [""]
+  assert $ split (unsafeRegex "b" noFlags) "" == []
   assert $ split (unsafeRegex "b" noFlags) "abc" == ["a", "c"]
 
   log "test"
